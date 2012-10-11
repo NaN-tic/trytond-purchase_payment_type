@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- This file is part of purchase_payment_type module for Tryton.
+The COPYRIGHT file at the top level of this repository contains the full
+copyright notices and license terms. -->
+<tryton>
+    <data>
+        <record model="ir.ui.view" id="purchase_view_form">
+            <field name="model">purchase.purchase</field>
+            <field name="type">form</field>
+            <field name="inherit" ref="purchase.purchase_view_form"/>
+            <field name="arch" type="xml">
+                <![CDATA[
+                <data>
+                    <xpath expr="/form/notebook/page[@id=&quot;purchase&quot;]/field[@name=&quot;payment_term&quot;]" position="after">
+                        <label name="payment_type"/>
+                        <field name="payment_type"/>
+                    </xpath>
+                </data>
+                ]]>
+            </field>
+        </record>
+    </data>
+</tryton>
