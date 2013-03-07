@@ -11,8 +11,8 @@ Tipos de pagos en pedidos de compra
 * En el momento de la generación de la factura, el tipo de pago del pedido de
   compra pasará a la factura.
  
-Módulos que dependen
-====================
+Módulos de los que depende
+==========================
 
 Instalados
 ----------
