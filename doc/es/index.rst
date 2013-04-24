@@ -10,33 +10,3 @@ Tipos de pagos en pedidos de compra
   en la ficha de tercero.
 * En el momento de la generación de la factura, el tipo de pago del pedido de
   compra pasará a la factura.
- 
-Módulos de los que depende
-==========================
-
-Instalados
-----------
-
-.. toctree::
-   :maxdepth: 1
-
-   /account/index
-   /account_payment_type/index
-   /company/index
-   /party/index
-   /purchase/index
-
-Dependencias
-------------
-
-* Contabilidad_
-* `Tipos de pago`_
-* Empresa_
-* Terceros_
-* Compras_
-
-.. _Contabilidad: ../account/index.html
-.. _Tipos de pago: ../account_payment_type/index.html
-.. _Empresa: ../company/index.html
-.. _Terceros: ../party/index.html
-.. _Compras: ../purchase/index.html
