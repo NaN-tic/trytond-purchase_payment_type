@@ -32,8 +32,8 @@ class Purchase:
 
     def on_change_party(self):
         changes = super(Purchase, self).on_change_party()
-        if self.party and self.party.customer_payment_type:
-            changes['payment_type'] = self.party.customer_payment_type.id
+        if self.party and self.party.supplier_payment_type:
+            changes['payment_type'] = self.party.supplier_payment_type.id
         return changes
 
     def _get_invoice_purchase(self, invoice_type):
