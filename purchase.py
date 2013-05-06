@@ -39,5 +39,8 @@ class Purchase:
     def _get_invoice_purchase(self, invoice_type):
         invoice = super(Purchase, self)._get_invoice_purchase(invoice_type)
         if self.payment_type:
+            if invoice_type == 'in_credit_note':
+                payment_type = self.party.customer_payment_type
+                self.write([self], {'payment_type': payment_type})
             invoice.payment_type = self.payment_type
         return invoice
