@@ -21,7 +21,8 @@ class Purchase:
     __name__ = 'purchase.purchase'
 
     payment_type = fields.Many2One('account.payment.type',
-        'Payment Type', states=_STATES, depends=_DEPENDS)
+        'Payment Type', states=_STATES, depends=_DEPENDS,
+        domain=[('kind','=','payable')])
 
     @classmethod
     def default_payment_type(cls):
