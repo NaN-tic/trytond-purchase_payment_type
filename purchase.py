@@ -42,6 +42,6 @@ class Purchase:
         if self.payment_type:
             if invoice_type == 'in_credit_note':
                 invoice.payment_type = self.party.customer_payment_type
-            else
+            else:
                 invoice.payment_type = self.payment_type
         return invoice
