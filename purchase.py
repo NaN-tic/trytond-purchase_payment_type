@@ -1,7 +1,6 @@
 #This file is part of purchase_payment_type module for Tryton.
 #The COPYRIGHT file at the top level of this repository contains
 #the full copyright notices and license terms.
-
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
@@ -27,7 +26,6 @@ class PaymentType:
 
 
 class Purchase:
-    'Purchase'
     __name__ = 'purchase.purchase'
 
     payment_type = fields.Many2One('account.payment.type',
@@ -41,11 +39,12 @@ class Purchase:
         if len(payment_types) == 1:
             return payment_types[0].id
 
+    @fields.depends('party')
     def on_change_party(self):
-        changes = super(Purchase, self).on_change_party()
+        super(Purchase, self).on_change_party()
+        self.payment_type = None
         if self.party and self.party.supplier_payment_type:
-            changes['payment_type'] = self.party.supplier_payment_type.id
-        return changes
+            self.payment_type = self.party.supplier_payment_type
 
     def _get_invoice_purchase(self, invoice_type):
         invoice = super(Purchase, self)._get_invoice_purchase(invoice_type)
