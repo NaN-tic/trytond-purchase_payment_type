@@ -50,7 +50,7 @@ class Purchase:
     def _get_invoice_purchase(self, invoice_type):
         invoice = super(Purchase, self)._get_invoice_purchase(invoice_type)
         if self.payment_type:
-            if invoice_type == 'in_credit_note':
+            if invoice_type == 'in' and self.total_amount < 0.0:
                 invoice.payment_type = self.party.customer_payment_type
             else:
                 invoice.payment_type = self.payment_type
