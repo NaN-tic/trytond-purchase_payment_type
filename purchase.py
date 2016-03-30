@@ -47,10 +47,10 @@ class Purchase:
         if self.party and self.party.supplier_payment_type:
             self.payment_type = self.party.supplier_payment_type
 
-    def _get_invoice_purchase(self, invoice_type):
-        invoice = super(Purchase, self)._get_invoice_purchase(invoice_type)
+    def _get_invoice_purchase(self):
+        invoice = super(Purchase, self)._get_invoice_purchase()
         if self.payment_type:
-            if invoice_type == 'in' and self.total_amount < 0.0:
+            if invoice.type == 'in' and self.total_amount < 0.0:
                 invoice.payment_type = self.party.customer_payment_type
             else:
                 invoice.payment_type = self.payment_type
