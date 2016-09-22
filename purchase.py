@@ -8,12 +8,6 @@ from trytond.pyson import Eval
 __all__ = ['PaymentType', 'Purchase']
 
 
-_STATES = {
-    'readonly': Eval('state') != 'draft',
-}
-_DEPENDS = ['state']
-
-
 class PaymentType:
     __metaclass__ = PoolMeta
     __name__ = 'account.payment.type'
@@ -30,7 +24,11 @@ class Purchase:
     __name__ = 'purchase.purchase'
 
     payment_type = fields.Many2One('account.payment.type',
-        'Payment Type', states=_STATES, depends=_DEPENDS,
+        'Payment Type',
+        states={
+            'readonly': ~Eval('state').in_(['draft', 'quotation']),
+            },
+        depends=['state'],
         domain=[('kind','=','payable')])
 
     @classmethod

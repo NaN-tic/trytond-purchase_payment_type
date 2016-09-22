@@ -1,4 +1,7 @@
+* Make payment_type not readonly on quotations
+
 Version 4.0.0 - 2016-05-03
+
 Version 3.4.0 - 2014-11-03
 * Prevent to modify sensible fields of payment types used in any purchase
 
