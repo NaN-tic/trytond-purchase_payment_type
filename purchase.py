@@ -29,7 +29,7 @@ class Purchase:
             'readonly': ~Eval('state').in_(['draft', 'quotation']),
             },
         depends=['state'],
-        domain=[('kind','=','payable')])
+        domain=[('kind', 'in', ['both', 'payable'])])
 
     @classmethod
     def default_payment_type(cls):
@@ -48,7 +48,7 @@ class Purchase:
     def _get_invoice_purchase(self):
         invoice = super(Purchase, self)._get_invoice_purchase()
         if self.payment_type:
-            if invoice.type == 'in' and self.total_amount < 0.0:
+            if self.payment_type.kind != 'both' and self.total_amount < 0.0:
                 invoice.payment_type = self.party.customer_payment_type
             else:
                 invoice.payment_type = self.payment_type
