@@ -43,7 +43,8 @@ major_version, minor_version, _ = version.split('.', 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
 name = 'trytonspain_purchase_payment_type'
-download_url = 'https://bitbucket.org/trytonspain/trytond-purchase_payment_type'
+download_url = (
+    'https://bitbucket.org/trytonspain/trytond-purchase_payment_type')
 
 requires = []
 for dep in info.get('depends', []):
