@@ -1,11 +1,19 @@
-# This file is part of purchase_payment_type module for Tryton.
-# The COPYRIGHT file at the top level of this repository contains
-# the full copyright notices and license terms.
+#This file is part of purchase_payment_type module for Tryton.
+#The COPYRIGHT file at the top level of this repository contains
+#the full copyright notices and license terms.
+from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 
 __all__ = ['PaymentType', 'Purchase']
+
+
+_STATES = {
+    'readonly': Eval('state') != 'draft',
+}
+_DEPENDS = ['state']
+ZERO = Decimal('0.0')
 
 
 class PaymentType:
@@ -24,12 +32,8 @@ class Purchase:
     __name__ = 'purchase.purchase'
 
     payment_type = fields.Many2One('account.payment.type',
-        'Payment Type',
-        states={
-            'readonly': ~Eval('state').in_(['draft', 'quotation']),
-            },
-        depends=['state'],
-        domain=[('kind', 'in', ['both', 'payable'])])
+        'Payment Type', states=_STATES, depends=_DEPENDS,
+        domain=[('kind','=','payable')])
 
     @classmethod
     def default_payment_type(cls):
@@ -48,8 +52,27 @@ class Purchase:
     def _get_invoice_purchase(self):
         invoice = super(Purchase, self)._get_invoice_purchase()
         if self.payment_type:
-            if self.payment_type.kind != 'both' and self.total_amount < 0.0:
-                invoice.payment_type = self.party.customer_payment_type
+            # set None payment type to control payable/receivable kind
+            # depend untaxed amount
+            invoice.payment_type = None
+        return invoice
+
+    def create_invoice(self):
+        invoice = super(Purchase, self).create_invoice()
+
+        if invoice and self.payment_type:
+            if invoice.untaxed_amount >= ZERO:
+                kind = 'payable'
+                name = 'supplier_payment_type'
             else:
+                kind = 'receivable'
+                name = 'customer_payment_type'
+
+            if self.payment_type.kind == kind:
                 invoice.payment_type = self.payment_type
+            else:
+                payment_type = getattr(self.party, name)
+                if payment_type:
+                    invoice.payment_type = payment_type
+            invoice.save()
         return invoice
