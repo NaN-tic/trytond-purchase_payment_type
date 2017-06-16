@@ -7,18 +7,17 @@ Imports::
     >>> import datetime
     >>> from dateutil.relativedelta import relativedelta
     >>> from decimal import Decimal
-    >>> from operator import attrgetter
-    >>> from proteus import Model, Wizard
+    >>> from proteus import config, Model, Wizard, Report
     >>> from trytond.tests.tools import activate_modules
     >>> from trytond.modules.company.tests.tools import create_company, \
     ...     get_company
     >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
-    ...     create_chart, get_accounts, create_tax, set_tax_code
+    ...     create_chart, get_accounts, create_tax
     >>> from trytond.modules.account_invoice.tests.tools import \
     ...     set_fiscalyear_invoice_sequences, create_payment_term
     >>> today = datetime.date.today()
 
-Install account_payment_type Module::
+Install purchase_payment_type::
 
     >>> config = activate_modules('purchase_payment_type')
 
@@ -32,20 +31,24 @@ Create fiscal year::
     >>> fiscalyear = set_fiscalyear_invoice_sequences(
     ...     create_fiscalyear(company))
     >>> fiscalyear.click('create_period')
-    >>> period = fiscalyear.periods[0]
 
 Create chart of accounts::
 
     >>> _ = create_chart(company)
     >>> accounts = get_accounts(company)
-    >>> receivable = accounts['receivable']
     >>> revenue = accounts['revenue']
     >>> expense = accounts['expense']
     >>> cash = accounts['cash']
 
+    >>> Journal = Model.get('account.journal')
+    >>> cash_journal, = Journal.find([('type', '=', 'cash')])
+    >>> cash_journal.credit_account = cash
+    >>> cash_journal.debit_account = cash
+    >>> cash_journal.save()
+
 Create tax::
 
-    >>> tax = set_tax_code(create_tax(Decimal('.10')))
+    >>> tax = create_tax(Decimal('.10'))
     >>> tax.save()
 
 Create product::
@@ -58,13 +61,14 @@ Create product::
     >>> template = ProductTemplate()
     >>> template.name = 'product'
     >>> template.default_uom = unit
-    >>> template.type = 'service'
-    >>> template.list_price = Decimal('50')
-    >>> template.cost_price = Decimal('25')
+    >>> template.type = 'goods'
+    >>> template.purchasable = True
+    >>> template.list_price = Decimal('10')
+    >>> template.cost_price = Decimal('5')
+    >>> template.cost_price_method = 'fixed'
     >>> template.account_expense = expense
     >>> template.account_revenue = revenue
     >>> template.supplier_taxes.append(tax)
-    >>> template.purchasable = True
     >>> template.save()
     >>> product.template = template
     >>> product.save()
@@ -81,8 +85,6 @@ Create payment type::
     >>> receivable.save()
     >>> payable = PaymentType(name='Payable', kind='payable')
     >>> payable.save()
-    >>> both = PaymentType(name='Both', kind='both')
-    >>> both.save()
 
 Create party::
 
@@ -92,62 +94,90 @@ Create party::
     >>> party.supplier_payment_type = payable
     >>> party.save()
 
-Check invoice payment type is correctly assigned::
+Purchase with payment type payable::
 
     >>> Purchase = Model.get('purchase.purchase')
+    >>> PurchaseLine = Model.get('purchase.line')
     >>> purchase = Purchase()
     >>> purchase.party = party
     >>> purchase.payment_term = payment_term
-    >>> purchase.payment_type == payable
-    True
-    >>> line = purchase.lines.new()
-    >>> line.product = product
-    >>> line.quantity = 1
-    >>> line.unit_price = Decimal('50.0')
-    >>> purchase.untaxed_amount
-    Decimal('50.00')
+    >>> purchase.payment_type = payable
+    >>> purchase.invoice_method = 'order'
+    >>> purchase_line = PurchaseLine()
+    >>> purchase.lines.append(purchase_line)
+    >>> purchase_line.product = product
+    >>> purchase_line.quantity = 2.0
+    >>> purchase_line = PurchaseLine()
+    >>> purchase.lines.append(purchase_line)
+    >>> purchase_line.product = product
+    >>> purchase_line.quantity = 3.0
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> purchase.click('process')
+    >>> purchase.state
+    u'processing'
     >>> invoice, = purchase.invoices
     >>> invoice.payment_type == payable
     True
 
-The customer payment term is used for return purchases::
+Purchase with payment type payable and negative untaxed amount::
 
     >>> purchase = Purchase()
     >>> purchase.party = party
     >>> purchase.payment_term = payment_term
-    >>> purchase.payment_type == payable
-    True
-    >>> line = purchase.lines.new()
-    >>> line.product = product
-    >>> line.quantity = -1
-    >>> line.unit_price = Decimal('50.0')
-    >>> purchase.untaxed_amount
-    Decimal('-50.00')
+    >>> purchase.payment_type = payable
+    >>> purchase.invoice_method = 'order'
+    >>> purchase_line = PurchaseLine()
+    >>> purchase.lines.append(purchase_line)
+    >>> purchase_line.product = product
+    >>> purchase_line.quantity = -2.0
+    >>> purchase_line = PurchaseLine()
+    >>> purchase.lines.append(purchase_line)
+    >>> purchase_line.product = product
+    >>> purchase_line.quantity = -3.0
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> purchase.click('process')
+    >>> purchase.state
+    u'processing'
     >>> invoice, = purchase.invoices
     >>> invoice.payment_type == receivable
     True
 
-When using a both payment the payment_type of the purchase is used::
+Invoice more than purchased::
 
     >>> purchase = Purchase()
     >>> purchase.party = party
     >>> purchase.payment_term = payment_term
-    >>> purchase.payment_type = both
-    >>> line = purchase.lines.new()
-    >>> line.product = product
-    >>> line.quantity = -1
-    >>> line.unit_price = Decimal('50.0')
-    >>> purchase.untaxed_amount
-    Decimal('-50.00')
+    >>> purchase.payment_type = payable
+    >>> purchase.invoice_method = 'order'
+    >>> purchase_line = PurchaseLine()
+    >>> purchase.lines.append(purchase_line)
+    >>> purchase_line.product = product
+    >>> purchase_line.quantity = 2.0
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> purchase.click('process')
+    >>> purchase.state
+    u'processing'
     >>> invoice, = purchase.invoices
-    >>> invoice.payment_type == both
+    >>> line, = invoice.lines
+    >>> line.quantity = 10.0
+    >>> line.save()
+    >>> invoice.reload()
+    >>> invoice.invoice_date = today
+    >>> invoice.save()
+    >>> invoice.click('validate_invoice')
+    >>> invoice.click('post')
+    >>> purchase.reload()
+    >>> len(purchase.invoices)
+    2
+    >>> invoice1, invoice2 = purchase.invoices
+    >>> invoice1.untaxed_amount > Decimal('0.0')
+    True
+    >>> invoice1.payment_type == payable
+    True
+    >>> invoice2.untaxed_amount > Decimal('0.0')
+    False
+    >>> invoice2.payment_type == receivable
     True
