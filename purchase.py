@@ -1,6 +1,6 @@
-#This file is part of purchase_payment_type module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains
-#the full copyright notices and license terms.
+# This file is part of purchase_payment_type module for Tryton.  The COPYRIGHT
+# file at the top level of this repository contains the full copyright notices
+# and license terms.
 from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
@@ -33,7 +33,7 @@ class Purchase:
 
     payment_type = fields.Many2One('account.payment.type',
         'Payment Type', states=_STATES, depends=_DEPENDS,
-        domain=[('kind','=','payable')])
+        domain=[('kind', '=', 'payable')])
 
     @classmethod
     def default_payment_type(cls):
