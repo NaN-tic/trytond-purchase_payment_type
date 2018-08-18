@@ -16,8 +16,7 @@ _DEPENDS = ['state']
 ZERO = Decimal('0.0')
 
 
-class PaymentType:
-    __metaclass__ = PoolMeta
+class PaymentType(metaclass=PoolMeta):
     __name__ = 'account.payment.type'
 
     @classmethod
@@ -27,8 +26,7 @@ class PaymentType:
             ('purchase.purchase', 'payment_type'))
 
 
-class Purchase:
-    __metaclass__ = PoolMeta
+class Purchase(metaclass=PoolMeta):
     __name__ = 'purchase.purchase'
 
     payment_type = fields.Many2One('account.payment.type',

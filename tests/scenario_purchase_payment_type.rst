@@ -122,7 +122,7 @@ Purchase with payment type payable::
     >>> purchase.click('confirm')
     >>> purchase.click('process')
     >>> purchase.state
-    u'processing'
+    'processing'
     >>> invoice, = purchase.invoices
     >>> invoice.payment_type == payable
     True
@@ -146,7 +146,7 @@ Purchase with payment type payable and negative untaxed amount::
     >>> purchase.click('confirm')
     >>> purchase.click('process')
     >>> purchase.state
-    u'processing'
+    'processing'
     >>> invoice, = purchase.invoices
     >>> invoice.payment_type == receivable
     True
@@ -166,7 +166,7 @@ Invoice more than purchased::
     >>> purchase.click('confirm')
     >>> purchase.click('process')
     >>> purchase.state
-    u'processing'
+    'processing'
     >>> invoice, = purchase.invoices
     >>> line, = invoice.lines
     >>> line.quantity = 10.0
