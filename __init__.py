@@ -3,6 +3,7 @@
 # the full copyright notices and license terms.
 from trytond.pool import Pool
 from . import purchase
+from . import purchase_request
 
 
 def register():
@@ -10,3 +11,11 @@ def register():
         purchase.PaymentType,
         purchase.Purchase,
         module='purchase_payment_type', type_='model')
+    Pool.register(
+        purchase_request.PurchaseRequest,
+        depends=['purchase_request'],
+        module='purchase_payment_type', type_='model')
+    Pool.register(
+        purchase_request.CreatePurchase,
+        depends=['purchase_request'],
+        module='purchase_payment_type', type_='wizard')
