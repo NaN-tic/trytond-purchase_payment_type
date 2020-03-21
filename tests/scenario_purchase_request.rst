@@ -94,6 +94,9 @@ Create purchase user::
     ...     ('name', '=', 'Purchase')
     ...     ])
     >>> purchase_user.groups.append(purchase_group)
+    >>> purchase_request_group, = Group.find(
+    ...     [('name', '=', 'Purchase Request')])
+    >>> purchase_user.groups.append(purchase_request_group)
     >>> purchase_user.save()
 
 Create account category::
@@ -178,6 +181,7 @@ There is now a draft purchase request::
 
 Create the purchase then cancel it::
 
+    >>> set_user(purchase_user)
     >>> create_purchase = Wizard('purchase.request.create_purchase',
     ...     [pr])
     >>> create_purchase.form.party = supplier
