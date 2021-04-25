@@ -31,7 +31,7 @@ class Purchase(metaclass=PoolMeta):
 
     payment_type = fields.Many2One('account.payment.type',
         'Payment Type', states=_STATES, depends=_DEPENDS,
-        domain=[('kind', '=', 'payable')])
+        domain=[('kind', 'in', ('payable', 'both'))])
 
     @classmethod
     def default_payment_type(cls):
@@ -59,14 +59,15 @@ class Purchase(metaclass=PoolMeta):
         invoice = super(Purchase, self).create_invoice()
 
         if invoice and self.payment_type:
+            kind = ['both']
             if invoice.untaxed_amount >= ZERO:
-                kind = 'payable'
+                kind.append('payable')
                 name = 'supplier_payment_type'
             else:
-                kind = 'receivable'
+                kind.append('receivable')
                 name = 'customer_payment_type'
 
-            if self.payment_type.kind == kind:
+            if self.payment_type.kind in kind:
                 invoice.payment_type = self.payment_type
             else:
                 payment_type = getattr(self.party, name)
