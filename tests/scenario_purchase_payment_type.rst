@@ -15,7 +15,6 @@ Imports::
     ...     create_chart, get_accounts, create_tax
     >>> from trytond.modules.account_invoice.tests.tools import \
     ...     set_fiscalyear_invoice_sequences, create_payment_term
-    >>> today = datetime.date.today()
 
 Install purchase_payment_type::
 
@@ -166,7 +165,7 @@ Invoice more than purchased::
     >>> line.quantity = 10.0
     >>> line.save()
     >>> invoice.reload()
-    >>> invoice.invoice_date = today
+    >>> invoice.invoice_date = datetime.date.today()
     >>> invoice.save()
     >>> invoice.click('validate_invoice')
     >>> invoice.click('post')
