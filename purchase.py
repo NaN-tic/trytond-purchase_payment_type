@@ -58,20 +58,32 @@ class Purchase(metaclass=PoolMeta):
     def create_invoice(self):
         invoice = super(Purchase, self).create_invoice()
 
-        if invoice and self.payment_type:
-            kind = ['both']
-            if invoice.untaxed_amount >= ZERO:
-                kind.append('payable')
-                name = 'supplier_payment_type'
-            else:
-                kind.append('receivable')
-                name = 'customer_payment_type'
-
-            if self.payment_type.kind in kind:
-                invoice.payment_type = self.payment_type
-            else:
-                payment_type = getattr(self.party, name)
-                if payment_type:
-                    invoice.payment_type = payment_type
-            invoice.save()
+        if invoice:
+            payment_type = self._get_invoice_payment_type(invoice)
+            if payment_type:
+                invoice.payment_type = payment_type
         return invoice
+
+    def _get_invoice_payment_type(self, invoice):
+        if self.payment_type and self.payment_type.kind == 'both':
+            return self.payment_type
+
+        # issue10801 invoice has not untaxed_amount and lines has not amount
+        # because is pending to do save()
+        if not hasattr(invoice, 'untaxed_amount'):
+            invoice.untaxed_amount = sum((Decimal(str(line.quantity or '0.0'))
+                    * (line.unit_price or Decimal('0.0')))
+                for line in invoice.lines if line.type == 'line' )
+
+        if invoice.untaxed_amount >= ZERO:
+            kind = 'payable'
+            name = 'supplier_payment_type'
+        else:
+            kind = 'receivable'
+            name = 'customer_payment_type'
+
+        if self.payment_type and self.payment_type.kind == kind:
+            return self.payment_type
+        else:
+            payment_type = getattr(self.party, name)
+            return payment_type if payment_type else None

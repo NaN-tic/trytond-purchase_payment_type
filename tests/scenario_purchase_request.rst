@@ -12,7 +12,7 @@ Imports::
     >>> from trytond.modules.company.tests.tools import create_company, \
     ...     get_company
     >>> from trytond.modules.account.tests.tools import (create_chart,
-    ...     get_accounts)
+    ...     get_accounts, create_tax)
     >>> today = datetime.date.today()
 
 Install stock_supply and purchase_payment_type Module::
@@ -30,6 +30,12 @@ Create chart of accounts::
     >>> _ = create_chart(company)
     >>> accounts = get_accounts(company)
     >>> expense = accounts['expense']
+    >>> revenue = accounts['revenue']
+
+Create tax::
+
+    >>> tax = create_tax(Decimal('.10'))
+    >>> tax.save()
 
 Create payment type::
 
@@ -49,61 +55,21 @@ Create parties::
     >>> supplier.supplier_payment_type = payable
     >>> supplier.save()
 
-Create stock admin user::
-
-    >>> User = Model.get('res.user')
-    >>> Group = Model.get('res.group')
-    >>> stock_admin_user = User()
-    >>> stock_admin_user.name = 'Stock Admin'
-    >>> stock_admin_user.login = 'stock_admin'
-    >>> stock_admin_group, = Group.find([('name', '=', 'Stock Administration')])
-    >>> stock_admin_user.groups.append(stock_admin_group)
-    >>> stock_admin_user.save()
-
-Create stock user::
-
-    >>> stock_user = User()
-    >>> stock_user.name = 'Stock'
-    >>> stock_user.login = 'stock'
-    >>> stock_group, = Group.find([('name', '=', 'Stock')])
-    >>> stock_group_admin, = Group.find([('name', '=', 'Stock Administration')])
-    >>> stock_user.groups.extend([stock_group, stock_group_admin])
-    >>> stock_user.save()
-
-Create product user::
-
-    >>> product_admin_user = User()
-    >>> product_admin_user.name = 'Product'
-    >>> product_admin_user.login = 'product'
-    >>> product_admin_group, = Group.find([
-    ...         ('name', '=', 'Product Administration')
-    ...         ])
-    >>> product_admin_user.groups.append(product_admin_group)
-    >>> product_admin_user.save()
-
-Create purchase user::
-
-    >>> purchase_user = User()
-    >>> purchase_user.name = 'Purchase'
-    >>> purchase_user.login = 'purchase'
-    >>> purchase_groups = Group.find(['OR',
-    ...         ('name', '=', 'Purchase'),
-    ...         ('name', '=', 'Purchase Request'),
-    ...         ])
-    >>> purchase_user.groups.extend(purchase_groups)
-    >>> purchase_user.save()
-
 Create account category::
 
     >>> ProductCategory = Model.get('product.category')
     >>> account_category = ProductCategory(name="Account Category")
     >>> account_category.accounting = True
     >>> account_category.account_expense = expense
+    >>> account_category.account_revenue = revenue
     >>> account_category.save()
+
+    >>> account_category_tax, = account_category.duplicate()
+    >>> account_category_tax.supplier_taxes.append(tax)
+    >>> account_category_tax.save()
 
 Create product::
 
-    >>> set_user(product_admin_user)
     >>> ProductUom = Model.get('product.uom')
     >>> ProductTemplate = Model.get('product.template')
     >>> unit, = ProductUom.find([('name', '=', 'Unit')])
@@ -114,7 +80,7 @@ Create product::
     >>> template.type = 'goods'
     >>> template.list_price = Decimal('20')
     >>> template.purchasable = True
-    >>> template.account_category = account_category
+    >>> template.account_category = account_category_tax
     >>> product, = template.products
     >>> product.cost_price = Decimal('8')
     >>> template.save()
@@ -122,7 +88,6 @@ Create product::
 
 Get stock locations::
 
-    >>> set_user(stock_admin_user)
     >>> Location = Model.get('stock.location')
     >>> warehouse_loc, = Location.find([('code', '=', 'WH')])
     >>> supplier_loc, = Location.find([('code', '=', 'SUP')])
@@ -132,7 +97,6 @@ Get stock locations::
 
 Create a need for missing product::
 
-    >>> set_user(stock_user)
     >>> ShipmentOut = Model.get('stock.shipment.out')
     >>> shipment_out = ShipmentOut()
     >>> shipment_out.planned_date = today
@@ -153,20 +117,17 @@ Create a need for missing product::
 
 There is no purchase request::
 
-    >>> set_user(purchase_user)
     >>> PurchaseRequest = Model.get('purchase.request')
     >>> PurchaseRequest.find([])
     []
 
 Create the purchase request::
 
-    >>> set_user(stock_user)
     >>> create_pr = Wizard('stock.supply')
     >>> create_pr.execute('create_')
 
 There is now a draft purchase request::
 
-    >>> set_user(purchase_user)
     >>> pr, = PurchaseRequest.find([('state', '=', 'draft')])
     >>> pr.product == product
     True
@@ -175,7 +136,6 @@ There is now a draft purchase request::
 
 Create the purchase then cancel it::
 
-    >>> set_user(purchase_user)
     >>> create_purchase = Wizard('purchase.request.create_purchase',
     ...     [pr])
     >>> create_purchase.form.party = supplier
