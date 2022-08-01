@@ -12,7 +12,7 @@ from configparser import ConfigParser
 MODULE = 'purchase_payment_type'
 PREFIX = 'trytonspain'
 MODULE2PREFIX = {
-    'account_payment_type': 'trytonspain',
+    'account_payment_type': 'nan-tic',
     }
 
 
