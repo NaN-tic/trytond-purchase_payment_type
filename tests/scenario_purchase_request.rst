@@ -13,7 +13,6 @@ Imports::
     ...     get_company
     >>> from trytond.modules.account.tests.tools import (create_chart,
     ...     get_accounts)
-    >>> today = datetime.date.today()
 
 Install stock_supply and purchase_payment_type Module::
 
@@ -132,6 +131,7 @@ Get stock locations::
 
 Create a need for missing product::
 
+    >>> today = datetime.date.today()
     >>> set_user(stock_user)
     >>> ShipmentOut = Model.get('stock.shipment.out')
     >>> shipment_out = ShipmentOut()
