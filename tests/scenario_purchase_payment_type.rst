@@ -107,10 +107,12 @@ Purchase with payment type payable::
     >>> purchase.lines.append(purchase_line)
     >>> purchase_line.product = product
     >>> purchase_line.quantity = 2.0
+    >>> purchase_line.unit_price = product.cost_price
     >>> purchase_line = PurchaseLine()
     >>> purchase.lines.append(purchase_line)
     >>> purchase_line.product = product
     >>> purchase_line.quantity = 3.0
+    >>> purchase_line.unit_price = product.cost_price
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> purchase.click('process')
@@ -131,10 +133,12 @@ Purchase with payment type payable and negative untaxed amount::
     >>> purchase.lines.append(purchase_line)
     >>> purchase_line.product = product
     >>> purchase_line.quantity = -2.0
+    >>> purchase_line.unit_price = product.cost_price
     >>> purchase_line = PurchaseLine()
     >>> purchase.lines.append(purchase_line)
     >>> purchase_line.product = product
     >>> purchase_line.quantity = -3.0
+    >>> purchase_line.unit_price = product.cost_price
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> purchase.click('process')
@@ -155,6 +159,7 @@ Invoice more than purchased::
     >>> purchase.lines.append(purchase_line)
     >>> purchase_line.product = product
     >>> purchase_line.quantity = 2.0
+    >>> purchase_line.unit_price = product.cost_price
     >>> purchase.click('quote')
     >>> purchase.click('confirm')
     >>> purchase.click('process')
