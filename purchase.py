@@ -12,7 +12,6 @@ __all__ = ['PaymentType', 'Purchase']
 _STATES = {
     'readonly': Eval('state') != 'draft',
 }
-_DEPENDS = ['state']
 ZERO = Decimal('0.0')
 
 
@@ -30,7 +29,7 @@ class Purchase(metaclass=PoolMeta):
     __name__ = 'purchase.purchase'
 
     payment_type = fields.Many2One('account.payment.type',
-        'Payment Type', states=_STATES, depends=_DEPENDS,
+        'Payment Type', states=_STATES,
         domain=[('kind', 'in', ('payable', 'both'))])
 
     @classmethod
