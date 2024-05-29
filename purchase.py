@@ -12,7 +12,7 @@ __all__ = ['PaymentType', 'Purchase']
 _STATES = {
     'readonly': Eval('state') != 'draft',
 }
-ZERO = Decimal('0.0')
+ZERO = Decimal(0)
 
 
 class PaymentType(metaclass=PoolMeta):
@@ -71,7 +71,7 @@ class Purchase(metaclass=PoolMeta):
         # because is pending to do save()
         if not hasattr(invoice, 'untaxed_amount'):
             invoice.untaxed_amount = sum((Decimal(str(line.quantity or '0.0'))
-                    * (line.unit_price or Decimal('0.0')))
+                    * (line.unit_price or Decimal(0)))
                 for line in invoice.lines if line.type == 'line' )
 
         if invoice.untaxed_amount >= ZERO:
