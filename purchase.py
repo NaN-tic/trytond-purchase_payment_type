@@ -32,6 +32,10 @@ class Purchase(metaclass=PoolMeta):
         'Payment Type', states=_STATES,
         domain=[('kind', 'in', ('payable', 'both'))])
 
+    @property
+    def _invoice_grouping_fields(self):
+        return super()._invoice_grouping_fields + ('payment_type',)
+
     @classmethod
     def default_payment_type(cls):
         PaymentType = Pool().get('account.payment.type')
@@ -55,7 +59,7 @@ class Purchase(metaclass=PoolMeta):
         return invoice
 
     def create_invoice(self):
-        invoice = super(Purchase, self).create_invoice()
+        invoice = super().create_invoice()
 
         if invoice:
             payment_type = self._get_invoice_payment_type(invoice)
@@ -68,13 +72,13 @@ class Purchase(metaclass=PoolMeta):
             return self.payment_type
 
         # issue10801 invoice has not untaxed_amount and lines has not amount
-        # because is pending to do save()
-        if not hasattr(invoice, 'untaxed_amount'):
-            invoice.untaxed_amount = sum((Decimal(str(line.quantity or '0.0'))
-                    * (line.unit_price or Decimal(0)))
-                for line in invoice.lines if line.type == 'line' )
+        # because is pending to do save() or in case grouping invoice,
+        # sum new lines and current invoice lines
+        # (could change negative to positve untaxed amount or viceversa)
+        untaxed_amount = sum(l.on_change_with_amount() for l in invoice.lines
+            if l.type == 'line')
 
-        if invoice.untaxed_amount >= ZERO:
+        if untaxed_amount >= ZERO:
             kind = 'payable'
             name = 'supplier_payment_type'
         else:
