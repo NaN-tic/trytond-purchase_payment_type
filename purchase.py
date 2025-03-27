@@ -75,8 +75,13 @@ class Purchase(metaclass=PoolMeta):
         # because is pending to do save() or in case grouping invoice,
         # sum new lines and current invoice lines
         # (could change negative to positve untaxed amount or viceversa)
-        untaxed_amount = sum(l.on_change_with_amount() for l in invoice.lines
-            if l.type == 'line')
+        untaxed_amount = None
+        if hasattr(invoice, 'lines'):
+            untaxed_amount = sum(l.on_change_with_amount() for l in invoice.lines)
+        elif hasattr(invoice, 'untaxed_amount'):
+            untaxed_amount = invoice.untaxed_amount
+        if not untaxed_amount:
+            return
 
         if untaxed_amount >= ZERO:
             kind = 'payable'
