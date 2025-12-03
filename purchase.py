@@ -50,8 +50,8 @@ class Purchase(metaclass=PoolMeta):
         if self.party and self.party.supplier_payment_type:
             self.payment_type = self.party.supplier_payment_type
 
-    def _get_invoice_purchase(self):
-        invoice = super(Purchase, self)._get_invoice_purchase()
+    def _get_invoice(self):
+        invoice = super(Purchase, self)._get_invoice()
         if self.payment_type:
             # set None payment type to control payable/receivable kind
             # depend untaxed amount
