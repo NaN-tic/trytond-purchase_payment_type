@@ -165,8 +165,9 @@ class Test(unittest.TestCase):
         invoice.click('post')
         purchase.reload()
         self.assertEqual(len(purchase.invoices), 2)
-        invoice1, invoice2 = purchase.invoices
-        self.assertGreater(invoice1.untaxed_amount, Decimal('0.0'))
-        self.assertEqual(invoice1.payment_type, payable)
-        self.assertLessEqual(invoice2.untaxed_amount, Decimal('0.0'))
-        self.assertEqual(invoice2.payment_type, receivable)
+        positive = next(
+            i for i in purchase.invoices if i.untaxed_amount <= Decimal('0.0'))
+        negative = next(
+            i for i in purchase.invoices if i.untaxed_amount > Decimal('0.0'))
+        self.assertEqual(positive.payment_type, receivable)
+        self.assertEqual(negative.payment_type, payable)
